@@ -1,0 +1,41 @@
+import random
+import numpy as np
+import pulp
+from sympy import *
+
+def get_nash(J):
+        lines=range(len(J))
+        columns=range(len(J[0]))
+
+        lp = pulp.LpProblem('Nash', pulp.LpMaximize)
+        V = pulp.LpVariable('V', cat='Continuous')
+
+        a = pulp.LpVariable.dicts("a", (lines),  cat="Continous")
+        lp.setObjective(V)
+
+        lp += pulp.lpSum([a[i] for i in lines]) == 1
+
+        for i in lines :
+            lp +=a[i]>=0
+
+        for j in columns :
+            lp += pulp.lpSum([a[i]*J[i][j] for i in lines])-V>=0
+
+
+        lp.solve()
+
+        return [pulp.value(lp.objective), [pulp.value(a[i]) for i in lines]]
+
+m=4
+J=np.zeros((m)*(m))
+J.resize((m, m))
+for i in range(m):
+        for j in range(m):
+            if i==j :
+                J[i][j]=5
+            else:
+                J[i][j]=-abs((i-j))
+
+qq=get_nash(J)
+print(qq)
+
